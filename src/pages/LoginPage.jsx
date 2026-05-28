@@ -1,8 +1,23 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "../styles/auth.css";
 
 function LoginPage() {
+  const navigate = useNavigate();
+
+  const [role, setRole] = useState("Patient");
+
+  const handleLogin = () => {
+    if (role === "Patient") {
+      navigate("/patient");
+    } else if (role === "Doctor") {
+      navigate("/doctor");
+    } else if (role === "Admin") {
+      navigate("/admin");
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -23,13 +38,20 @@ function LoginPage() {
             <input type="password" placeholder="Enter your password" />
 
             <label>Role</label>
-            <select>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
               <option>Patient</option>
               <option>Doctor</option>
               <option>Admin</option>
             </select>
 
-            <button type="button" className="authButton">
+            <button
+              type="button"
+              className="authButton"
+              onClick={handleLogin}
+            >
               Login
             </button>
           </form>
