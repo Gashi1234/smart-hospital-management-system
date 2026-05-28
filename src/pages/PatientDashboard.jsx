@@ -22,12 +22,19 @@ function PatientDashboard() {
 
   return (
     <div className="dashboardLayout">
-      <Sidebar role="Patient" />
+            <Sidebar
+                role="Patient"
+                links={[
+                    { label: "Dashboard", href: "#dashboard" },
+                    { label: "Appointments", href: "#appointments" },
+                    { label: "AI Assistant", href: "#ai-assistant" },
+                ]}
+            />
 
       <main className="dashboardMain">
         <DashboardNavbar title="Patient Dashboard" />
 
-        <section className="dashboardGrid">
+        <section id="dashboard" className="dashboardGrid">
           <DashboardCard
             title="Appointments"
             value={appointments.length}
@@ -47,8 +54,8 @@ function PatientDashboard() {
           />
         </section>
 
-        <section className="dashboardPanel">
-          <h2>Book Appointment</h2>
+        <section id="appointments" className="dashboardPanel">
+        <h2>Book Appointment</h2>
 
           <div className="doctorGrid">
             {doctors.map((doctor) => (
@@ -82,7 +89,9 @@ function PatientDashboard() {
             </div>
           )}
         </section>
-        <AISymptomChecker />
+        <div id="ai-assistant">
+            <AISymptomChecker />
+        </div>
       </main>
     </div>
   );

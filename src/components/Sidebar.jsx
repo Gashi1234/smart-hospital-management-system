@@ -1,15 +1,18 @@
 import { Link } from "react-router-dom";
 
-function Sidebar({ role }) {
+function Sidebar({ role, links = [] }) {
   return (
     <aside className="sidebar">
       <h2>SmartCare AI</h2>
       <p>{role} Panel</p>
 
       <nav className="sidebarLinks">
-        <Link to="/patient">Dashboard</Link>
-        <Link to="/patient">Appointments</Link>
-        <Link to="/patient">AI Assistant</Link>
+        {links.map((link) => (
+          <a key={link.label} href={link.href}>
+            {link.label}
+          </a>
+        ))}
+
         <Link to="/login">Logout</Link>
       </nav>
     </aside>
