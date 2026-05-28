@@ -221,6 +221,59 @@
     margin-bottom: 8px;
     color: #102a43;
   }
+
+  .smallActionButton {
+    margin-top: 14px;
+    border: none;
+    background: #0d6efd;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  
+  .modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 42, 67, 0.55);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+  }
+  
+  .modalCard {
+    width: 100%;
+    max-width: 520px;
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(15, 45, 70, 0.25);
+  }
+  
+  .modalCard h2 {
+    margin-bottom: 12px;
+  }
+  
+  .modalActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .modalActions button {
+    border: none;
+    background: #0d6efd;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  
+  .cancelButton {
+    background: #52616b !important;
+  }
   
   @media (max-width: 900px) {
     .dashboardLayout {
