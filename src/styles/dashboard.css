@@ -328,3 +328,15 @@ html {
       grid-template-columns: 1fr;
     }
   }
+
+  .logoutButton {
+    margin-top: 12px;
+    border: none;
+    background: #d93025;
+    color: white;
+    padding: 13px 14px;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+  }

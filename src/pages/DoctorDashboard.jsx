@@ -1,44 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import DashboardNavbar from "../components/DashboardNavbar";
 import DashboardCard from "../components/DashboardCard";
 import DiagnosisModal from "../components/DiagnosisModal";
+import {
+  getAppointments,
+  addDiagnosis,
+  getDiagnoses,
+} from "../services/firestoreService";
 import "../styles/dashboard.css";
 
-const patientAppointments = [
-  {
-    id: 1,
-    patientName: "Ardit Gashi",
-    time: "10:00 AM",
-    symptoms: "Chest pain and shortness of breath",
-    department: "Cardiology",
-  },
-  {
-    id: 2,
-    patientName: "Elira Krasniqi",
-    time: "12:30 PM",
-    symptoms: "Headache and dizziness",
-    department: "Neurology",
-  },
-];
-
 function DoctorDashboard() {
+  const [appointments, setAppointments] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [diagnosis, setDiagnosis] = useState("");
   const [savedNotes, setSavedNotes] = useState([]);
 
-  const saveDiagnosis = () => {
-    setSavedNotes([
-      ...savedNotes,
-      {
-        id: Date.now(),
-        patientName: selectedPatient.patientName,
-        diagnosis,
-      },
-    ]);
+  const loadAppointments = async () => {
+    const data = await getAppointments();
+    setAppointments(data);
+  };
 
-    setSelectedPatient(null);
-    setDiagnosis("");
+  const loadDiagnoses = async () => {
+    const data = await getDiagnoses();
+    setSavedNotes(data);
+  };
+
+  useEffect(() => {
+    loadAppointments();
+    loadDiagnoses();
+  }, []);
+
+  const saveDiagnosis = async () => {
+    if (!selectedPatient) {
+      alert("No patient selected.");
+      return;
+    }
+  
+    if (!diagnosis.trim()) {
+      alert("Please write a diagnosis before saving.");
+      return;
+    }
+  
+    try {
+      const diagnosisData = {
+        appointmentId: selectedPatient.id,
+        patientEmail: selectedPatient.patientEmail || "Unknown patient",
+        doctor: selectedPatient.doctor || "Unknown doctor",
+        department: selectedPatient.department || "Unknown department",
+        diagnosis,
+      };
+  
+      await addDiagnosis(diagnosisData);
+  
+      setSelectedPatient(null);
+      setDiagnosis("");
+      await loadDiagnoses();
+  
+      alert("Diagnosis saved successfully!");
+    } catch (error) {
+      console.log("Diagnosis save error:", error);
+      alert(error.message);
+    }
   };
 
   return (
@@ -49,31 +72,50 @@ function DoctorDashboard() {
         <DashboardNavbar title="Doctor Dashboard" />
 
         <section className="dashboardGrid">
-          <DashboardCard title="Appointments" value="2" description="Today’s consultations" />
-          <DashboardCard title="Symptoms" value="2" description="Patients submitted symptoms" />
-          <DashboardCard title="Notes" value={savedNotes.length} description="Saved diagnosis notes" />
+          <DashboardCard
+            title="Appointments"
+            value={appointments.length}
+            description="Today’s consultations"
+          />
+
+          <DashboardCard
+            title="Departments"
+            value="3"
+            description="Active medical departments"
+          />
+
+          <DashboardCard
+            title="Notes"
+            value={savedNotes.length}
+            description="Saved diagnosis notes"
+          />
         </section>
 
         <section className="dashboardPanel">
           <h2>Patient Appointments</h2>
 
-          <div className="appointmentList">
-            {patientAppointments.map((patient) => (
-              <div className="appointmentItem" key={patient.id}>
-                <strong>{patient.patientName}</strong>
-                <p>{patient.department}</p>
-                <p>{patient.symptoms}</p>
-                <span>{patient.time}</span>
+          {appointments.length === 0 ? (
+            <p className="emptyText">No patient appointments yet.</p>
+          ) : (
+            <div className="appointmentList">
+              {appointments.map((appointment) => (
+                <div className="appointmentItem" key={appointment.id}>
+                  <strong>{appointment.doctor}</strong>
+                  <p>Patient: {appointment.patientEmail}</p>
+                  <p>{appointment.department}</p>
+                  <p>Status: {appointment.status}</p>
+                  <span>{appointment.time}</span>
 
-                <button
-                  className="smallActionButton"
-                  onClick={() => setSelectedPatient(patient)}
-                >
-                  Add Diagnosis
-                </button>
-              </div>
-            ))}
-          </div>
+                  <button
+                    className="smallActionButton"
+                    onClick={() => setSelectedPatient(appointment)}
+                  >
+                    Add Diagnosis
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="dashboardPanel">
@@ -85,7 +127,9 @@ function DoctorDashboard() {
             <div className="appointmentList">
               {savedNotes.map((note) => (
                 <div className="appointmentItem" key={note.id}>
-                  <strong>{note.patientName}</strong>
+                  <strong>{note.patientEmail}</strong>
+                  <p>Doctor: {note.doctor}</p>
+                  <p>Department: {note.department}</p>
                   <p>{note.diagnosis}</p>
                 </div>
               ))}

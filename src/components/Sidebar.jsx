@@ -1,6 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 function Sidebar({ role, links = [] }) {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   return (
     <aside className="sidebar">
       <h2>SmartCare AI</h2>
@@ -13,7 +26,12 @@ function Sidebar({ role, links = [] }) {
           </a>
         ))}
 
-        <Link to="/login">Logout</Link>
+        <button
+          className="logoutButton"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
       </nav>
     </aside>
   );
