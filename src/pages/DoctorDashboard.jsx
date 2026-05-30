@@ -42,27 +42,28 @@ function DoctorDashboard() {
       alert("No patient selected.");
       return;
     }
-  
+
     if (!diagnosis.trim()) {
       alert("Please write a diagnosis before saving.");
       return;
     }
-  
+
     try {
       const diagnosisData = {
         appointmentId: selectedPatient.id,
         patientEmail: selectedPatient.patientEmail || "Unknown patient",
         doctor: selectedPatient.doctor || "Unknown doctor",
         department: selectedPatient.department || "Unknown department",
+        symptoms: selectedPatient.symptoms || "No symptoms provided",
         diagnosis,
       };
-  
+
       await addDiagnosis(diagnosisData);
-  
+
       setSelectedPatient(null);
       setDiagnosis("");
       await loadDiagnoses();
-  
+
       alert("Diagnosis saved successfully!");
     } catch (error) {
       console.log("Diagnosis save error:", error);
@@ -109,6 +110,7 @@ function DoctorDashboard() {
                   <strong>{appointment.doctor}</strong>
                   <p>Patient: {appointment.patientEmail}</p>
                   <p>{appointment.department}</p>
+                  <p>Symptoms: {appointment.symptoms || "No symptoms provided"}</p>
                   <p>Status: {appointment.status}</p>
                   <span>{appointment.time}</span>
 
@@ -120,19 +122,30 @@ function DoctorDashboard() {
                   </button>
 
                   <div className="statusActions">
-                    <button onClick={() => changeAppointmentStatus(appointment.id, "Accepted")}>
+                    <button
+                      onClick={() =>
+                        changeAppointmentStatus(appointment.id, "Accepted")
+                      }
+                    >
                       Accept
                     </button>
 
-                    <button onClick={() => changeAppointmentStatus(appointment.id, "Rejected")}>
+                    <button
+                      onClick={() =>
+                        changeAppointmentStatus(appointment.id, "Rejected")
+                      }
+                    >
                       Reject
                     </button>
 
-                    <button onClick={() => changeAppointmentStatus(appointment.id, "Completed")}>
+                    <button
+                      onClick={() =>
+                        changeAppointmentStatus(appointment.id, "Completed")
+                      }
+                    >
                       Complete
                     </button>
                   </div>
-                  
                 </div>
               ))}
             </div>
@@ -151,7 +164,8 @@ function DoctorDashboard() {
                   <strong>{note.patientEmail}</strong>
                   <p>Doctor: {note.doctor}</p>
                   <p>Department: {note.department}</p>
-                  <p>{note.diagnosis}</p>
+                  <p>Symptoms: {note.symptoms || "No symptoms provided"}</p>
+                  <p>Diagnosis: {note.diagnosis}</p>
                 </div>
               ))}
             </div>

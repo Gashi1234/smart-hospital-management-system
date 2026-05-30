@@ -16,6 +16,7 @@ import { auth } from "../firebase";
 function PatientDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [diagnoses, setDiagnoses] = useState([]);
+  const [symptoms, setSymptoms] = useState("");
 
   const loadPatientData = async (email) => {
     const appointmentData = await getAppointmentsByPatient(email);
@@ -44,9 +45,12 @@ function PatientDashboard() {
       department: doctor.department,
       time: doctor.availableTime,
       status: "Booked",
+      symptoms,
     };
 
     await addAppointment(newAppointment);
+
+    setSymptoms("");
 
     if (currentUser) {
       loadPatientData(currentUser.email);
@@ -91,6 +95,13 @@ function PatientDashboard() {
         <section id="appointments" className="dashboardPanel">
           <h2>Book Appointment</h2>
 
+          <textarea
+            className="symptomInput"
+            placeholder="Describe your symptoms before booking..."
+            value={symptoms}
+            onChange={(e) => setSymptoms(e.target.value)}
+          />
+
           <div className="doctorGrid">
             {doctors.map((doctor) => (
               <div className="doctorCard" key={doctor.id}>
@@ -119,6 +130,7 @@ function PatientDashboard() {
                   <p>Patient: {appointment.patientEmail}</p>
                   <p>{appointment.department}</p>
                   <p>Status: {appointment.status}</p>
+                  <p>Symptoms: {appointment.symptoms}</p>
                   <span>{appointment.time}</span>
                 </div>
               ))}
@@ -127,7 +139,7 @@ function PatientDashboard() {
         </section>
 
         <section id="medical-records" className="dashboardPanel">
-        <h2>Medical Records</h2>
+          <h2>Medical Records</h2>
 
           {diagnoses.length === 0 ? (
             <p className="emptyText">No diagnosis records yet.</p>
