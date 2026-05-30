@@ -340,3 +340,20 @@ html {
     cursor: pointer;
     text-align: left;
   }
+
+  .statusActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  
+  .statusActions button {
+    border: none;
+    background: #102a43;
+    color: white;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }

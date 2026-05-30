@@ -6,6 +6,8 @@ import {
     query,
     orderBy,
     where,
+    doc,
+    updateDoc,
   } from "firebase/firestore";
   
   import { db } from "../firebase";
@@ -70,4 +72,12 @@ import {
       id: doc.id,
       ...doc.data(),
     }));
+  };
+
+  export const updateAppointmentStatus = async (appointmentId, status) => {
+    const appointmentRef = doc(db, "appointments", appointmentId);
+  
+    return await updateDoc(appointmentRef, {
+      status,
+    });
   };

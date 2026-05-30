@@ -7,6 +7,7 @@ import {
   getAppointments,
   addDiagnosis,
   getDiagnoses,
+  updateAppointmentStatus,
 } from "../services/firestoreService";
 import "../styles/dashboard.css";
 
@@ -30,6 +31,11 @@ function DoctorDashboard() {
     loadAppointments();
     loadDiagnoses();
   }, []);
+
+  const changeAppointmentStatus = async (appointmentId, status) => {
+    await updateAppointmentStatus(appointmentId, status);
+    loadAppointments();
+  };
 
   const saveDiagnosis = async () => {
     if (!selectedPatient) {
@@ -112,6 +118,21 @@ function DoctorDashboard() {
                   >
                     Add Diagnosis
                   </button>
+
+                  <div className="statusActions">
+                    <button onClick={() => changeAppointmentStatus(appointment.id, "Accepted")}>
+                      Accept
+                    </button>
+
+                    <button onClick={() => changeAppointmentStatus(appointment.id, "Rejected")}>
+                      Reject
+                    </button>
+
+                    <button onClick={() => changeAppointmentStatus(appointment.id, "Completed")}>
+                      Complete
+                    </button>
+                  </div>
+                  
                 </div>
               ))}
             </div>
