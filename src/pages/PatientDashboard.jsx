@@ -3,7 +3,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Sidebar from "../components/Sidebar";
 import DashboardNavbar from "../components/DashboardNavbar";
 import DashboardCard from "../components/DashboardCard";
-import { doctors } from "../data/doctors";
+import { getDoctors } from "../services/firestoreService";
 import "../styles/dashboard.css";
 import AISymptomChecker from "../components/AISymptomChecker";
 import {
@@ -17,6 +17,12 @@ function PatientDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [diagnoses, setDiagnoses] = useState([]);
   const [symptoms, setSymptoms] = useState("");
+  const [doctors, setDoctors] = useState([]);
+
+  const loadDoctors = async () => {
+    const data = await getDoctors();
+    setDoctors(data);
+  };
 
   const loadPatientData = async (email) => {
     const appointmentData = await getAppointmentsByPatient(email);
@@ -27,6 +33,8 @@ function PatientDashboard() {
   };
 
   useEffect(() => {
+    loadDoctors();
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         loadPatientData(user.email);

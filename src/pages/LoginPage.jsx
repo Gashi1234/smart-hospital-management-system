@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { loginUser } from "../services/authService";
+import { getUserProfile } from "../services/firestoreService";
 import "../styles/auth.css";
 
 function LoginPage() {
@@ -9,7 +10,6 @@ function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("Patient");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,14 +18,25 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      await loginUser(email, password);
+      const userCredential = await loginUser(email, password);
+      const userProfile = await getUserProfile(userCredential.user.uid);
 
-      if (role === "Patient") {
+      if (!userProfile) {
+        setError("User profile not found. Please contact admin.");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("userRole", userProfile.role);
+
+      if (userProfile.role === "Patient") {
         navigate("/patient");
-      } else if (role === "Doctor") {
+      } else if (userProfile.role === "Doctor") {
         navigate("/doctor");
-      } else if (role === "Admin") {
+      } else if (userProfile.role === "Admin") {
         navigate("/admin");
+      } else {
+        setError("Invalid user role.");
       }
     } catch (err) {
       setError(err.message);
@@ -43,7 +54,7 @@ function LoginPage() {
           <div className="authHeader">
             <span className="badge">Welcome Back</span>
             <h1>Login to SmartCare AI</h1>
-            <p>Access your hospital dashboard based on your role.</p>
+            <p>Access your hospital dashboard based on your assigned role.</p>
           </div>
 
           <form className="authForm">
@@ -62,13 +73,6 @@ function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-
-            <label>Role</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option>Patient</option>
-              <option>Doctor</option>
-              <option>Admin</option>
-            </select>
 
             {error && <p className="errorText">{error}</p>}
 

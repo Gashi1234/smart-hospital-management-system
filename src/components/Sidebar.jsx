@@ -8,6 +8,9 @@ function Sidebar({ role, links = [] }) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+  
+      localStorage.removeItem("userRole");
+  
       navigate("/login");
     } catch (error) {
       console.log(error.message);

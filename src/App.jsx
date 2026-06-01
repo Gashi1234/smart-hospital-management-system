@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import PatientDashboard from "./pages/PatientDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -14,9 +15,33 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/patient" element={<PatientDashboard />} />
-        <Route path="/doctor" element={<DoctorDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+
+        <Route
+          path="/patient"
+          element={
+            <ProtectedRoute allowedRole="Patient">
+              <PatientDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/doctor"
+          element={
+            <ProtectedRoute allowedRole="Doctor">
+              <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRole="Admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { registerUser } from "../services/authService.js";
+import { saveUserProfile } from "../services/firestoreService";
 import "../styles/auth.css";
 
 function RegisterPage() {
@@ -19,14 +20,16 @@ function RegisterPage() {
     setLoading(true);
 
     try {
-      await registerUser(email, password);
+      const userCredential = await registerUser(email, password);
 
-      console.log({
+      await saveUserProfile(userCredential.user.uid, {
         fullName,
         email,
         phoneNumber,
         role: "Patient",
       });
+
+      localStorage.setItem("userRole", "Patient");
 
       navigate("/patient");
     } catch (err) {
