@@ -3,38 +3,56 @@ import Sidebar from "../components/Sidebar";
 import DashboardNavbar from "../components/DashboardNavbar";
 import DashboardCard from "../components/DashboardCard";
 import DiagnosisModal from "../components/DiagnosisModal";
+import { auth } from "../firebase";
 import {
-  getAppointments,
   addDiagnosis,
-  getDiagnoses,
+  getUserProfile,
+  getAppointmentsByDoctor,
+  getDiagnosesByDoctor,
   updateAppointmentStatus,
 } from "../services/firestoreService";
 import "../styles/dashboard.css";
 
 function DoctorDashboard() {
+  const [doctorName, setDoctorName] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [diagnosis, setDiagnosis] = useState("");
   const [savedNotes, setSavedNotes] = useState([]);
 
-  const loadAppointments = async () => {
-    const data = await getAppointments();
-    setAppointments(data);
-  };
+  const loadDoctorData = async () => {
+    const currentUser = auth.currentUser;
 
-  const loadDiagnoses = async () => {
-    const data = await getDiagnoses();
-    setSavedNotes(data);
+    if (!currentUser) return;
+
+    const doctorProfile = await getUserProfile(currentUser.uid);
+
+    if (!doctorProfile?.doctorName) {
+      alert("Doctor profile is missing doctorName field.");
+      return;
+    }
+
+    setDoctorName(doctorProfile.doctorName);
+
+    const appointmentData = await getAppointmentsByDoctor(
+      doctorProfile.doctorName
+    );
+
+    const diagnosisData = await getDiagnosesByDoctor(
+      doctorProfile.doctorName
+    );
+
+    setAppointments(appointmentData);
+    setSavedNotes(diagnosisData);
   };
 
   useEffect(() => {
-    loadAppointments();
-    loadDiagnoses();
+    loadDoctorData();
   }, []);
 
   const changeAppointmentStatus = async (appointmentId, status) => {
     await updateAppointmentStatus(appointmentId, status);
-    loadAppointments();
+    loadDoctorData();
   };
 
   const saveDiagnosis = async () => {
@@ -52,7 +70,7 @@ function DoctorDashboard() {
       const diagnosisData = {
         appointmentId: selectedPatient.id,
         patientEmail: selectedPatient.patientEmail || "Unknown patient",
-        doctor: selectedPatient.doctor || "Unknown doctor",
+        doctor: selectedPatient.doctor || doctorName,
         department: selectedPatient.department || "Unknown department",
         symptoms: selectedPatient.symptoms || "No symptoms provided",
         diagnosis,
@@ -62,7 +80,8 @@ function DoctorDashboard() {
 
       setSelectedPatient(null);
       setDiagnosis("");
-      await loadDiagnoses();
+
+      await loadDoctorData();
 
       alert("Diagnosis saved successfully!");
     } catch (error) {
@@ -76,33 +95,33 @@ function DoctorDashboard() {
       <Sidebar role="Doctor" />
 
       <main className="dashboardMain">
-        <DashboardNavbar title="Doctor Dashboard" />
+        <DashboardNavbar title={doctorName || "Doctor Dashboard"} />
 
         <section className="dashboardGrid">
           <DashboardCard
             title="Appointments"
             value={appointments.length}
-            description="Today’s consultations"
+            description="Your consultations"
           />
 
           <DashboardCard
-            title="Departments"
-            value="3"
-            description="Active medical departments"
+            title="Doctor"
+            value={doctorName || "Loading"}
+            description="Logged-in doctor"
           />
 
           <DashboardCard
             title="Notes"
             value={savedNotes.length}
-            description="Saved diagnosis notes"
+            description="Your saved diagnosis notes"
           />
         </section>
 
         <section className="dashboardPanel">
-          <h2>Patient Appointments</h2>
+          <h2>My Patient Appointments</h2>
 
           {appointments.length === 0 ? (
-            <p className="emptyText">No patient appointments yet.</p>
+            <p className="emptyText">No appointments assigned to you yet.</p>
           ) : (
             <div className="appointmentList">
               {appointments.map((appointment) => (
@@ -110,7 +129,10 @@ function DoctorDashboard() {
                   <strong>{appointment.doctor}</strong>
                   <p>Patient: {appointment.patientEmail}</p>
                   <p>{appointment.department}</p>
-                  <p>Symptoms: {appointment.symptoms || "No symptoms provided"}</p>
+                  <p>
+                    Symptoms:{" "}
+                    {appointment.symptoms || "No symptoms provided"}
+                  </p>
                   <p>Status: {appointment.status}</p>
                   <span>{appointment.time}</span>
 
@@ -153,7 +175,7 @@ function DoctorDashboard() {
         </section>
 
         <section className="dashboardPanel">
-          <h2>Saved Medical Notes</h2>
+          <h2>My Saved Medical Notes</h2>
 
           {savedNotes.length === 0 ? (
             <p className="emptyText">No diagnosis notes saved yet.</p>
@@ -164,7 +186,9 @@ function DoctorDashboard() {
                   <strong>{note.patientEmail}</strong>
                   <p>Doctor: {note.doctor}</p>
                   <p>Department: {note.department}</p>
-                  <p>Symptoms: {note.symptoms || "No symptoms provided"}</p>
+                  <p>
+                    Symptoms: {note.symptoms || "No symptoms provided"}
+                  </p>
                   <p>Diagnosis: {note.diagnosis}</p>
                 </div>
               ))}

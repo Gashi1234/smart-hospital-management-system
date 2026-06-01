@@ -34,7 +34,7 @@ function PatientDashboard() {
 
   useEffect(() => {
     loadDoctors();
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         loadPatientData(user.email);
@@ -79,7 +79,7 @@ function PatientDashboard() {
 
       <main className="dashboardMain">
         <DashboardNavbar title="Patient Dashboard" />
-
+        <AISymptomChecker />
         <section id="dashboard" className="dashboardGrid">
           <DashboardCard
             title="Appointments"
@@ -165,7 +165,7 @@ function PatientDashboard() {
         </section>
 
         <div id="ai-assistant">
-          <AISymptomChecker />
+          
         </div>
       </main>
     </div>

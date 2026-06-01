@@ -153,3 +153,31 @@ import {
   
     return null;
   };
+
+  export const getAppointmentsByDoctor = async (doctorName) => {
+    const appointmentsQuery = query(
+      collection(db, "appointments"),
+      where("doctor", "==", doctorName)
+    );
+  
+    const querySnapshot = await getDocs(appointmentsQuery);
+  
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  };
+  
+  export const getDiagnosesByDoctor = async (doctorName) => {
+    const diagnosesQuery = query(
+      collection(db, "diagnoses"),
+      where("doctor", "==", doctorName)
+    );
+  
+    const querySnapshot = await getDocs(diagnosesQuery);
+  
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  };
