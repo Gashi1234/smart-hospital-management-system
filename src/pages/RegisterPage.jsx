@@ -2,7 +2,10 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { registerUser } from "../services/authService.js";
-import { saveUserProfile } from "../services/firestoreService";
+import {
+  saveUserProfile,
+  getStaffProfileByEmail,
+} from "../services/firestoreService";
 import "../styles/auth.css";
 
 function RegisterPage() {
@@ -22,16 +25,29 @@ function RegisterPage() {
     try {
       const userCredential = await registerUser(email, password);
 
+      const staffProfile = await getStaffProfileByEmail(email);
+
+      const userRole = staffProfile?.role || "Patient";
+
       await saveUserProfile(userCredential.user.uid, {
-        fullName,
+        fullName: staffProfile?.doctorName || fullName,
         email,
         phoneNumber,
-        role: "Patient",
+        role: userRole,
+        doctorName: staffProfile?.doctorName || "",
+        department: staffProfile?.department || "",
+        availableTime: staffProfile?.availableTime || "",
       });
 
-      localStorage.setItem("userRole", "Patient");
+      localStorage.setItem("userRole", userRole);
 
-      navigate("/patient");
+      if (userRole === "Doctor") {
+        navigate("/doctor");
+      } else if (userRole === "Admin") {
+        navigate("/admin");
+      } else {
+        navigate("/patient");
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -47,8 +63,11 @@ function RegisterPage() {
         <section className="authCard">
           <div className="authHeader">
             <span className="badge">Create Account</span>
-            <h1>Register as Patient</h1>
-            <p>Create your account to book appointments and use AI suggestions.</p>
+            <h1>Register Account</h1>
+            <p>
+              Create your account. Approved staff emails will automatically get
+              the correct hospital role.
+            </p>
           </div>
 
           <form className="authForm">

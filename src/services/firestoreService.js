@@ -181,3 +181,58 @@ import {
       ...doc.data(),
     }));
   };
+
+  export const getStaffProfileByEmail = async (email) => {
+    const staffQuery = query(
+      collection(db, "staffProfiles"),
+      where("email", "==", email)
+    );
+  
+    const querySnapshot = await getDocs(staffQuery);
+  
+    if (!querySnapshot.empty) {
+      return {
+        id: querySnapshot.docs[0].id,
+        ...querySnapshot.docs[0].data(),
+      };
+    }
+  
+    return null;
+  };
+
+  export const addStaffProfile = async (staffData) => {
+    return await addDoc(collection(db, "staffProfiles"), {
+      ...staffData,
+      createdAt: serverTimestamp(),
+    });
+  };
+
+  export const updateUserProfileByEmail = async (email, updatedData) => {
+    const usersQuery = query(
+      collection(db, "users"),
+      where("email", "==", email)
+    );
+  
+    const querySnapshot = await getDocs(usersQuery);
+  
+    const updatePromises = querySnapshot.docs.map((userDoc) =>
+      updateDoc(doc(db, "users", userDoc.id), updatedData)
+    );
+  
+    return await Promise.all(updatePromises);
+  };
+  
+  export const updateStaffProfileByEmail = async (email, updatedData) => {
+    const staffQuery = query(
+      collection(db, "staffProfiles"),
+      where("email", "==", email)
+    );
+  
+    const querySnapshot = await getDocs(staffQuery);
+  
+    const updatePromises = querySnapshot.docs.map((staffDoc) =>
+      updateDoc(doc(db, "staffProfiles", staffDoc.id), updatedData)
+    );
+  
+    return await Promise.all(updatePromises);
+  };

@@ -8,6 +8,9 @@ import {
   getDoctors,
   deleteDoctor,
   updateDoctor,
+  addStaffProfile,
+  updateUserProfileByEmail,
+  updateStaffProfileByEmail,
   getAppointments,
   getDiagnoses,
   getPatientRecords,
@@ -19,9 +22,13 @@ function AdminDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [diagnoses, setDiagnoses] = useState([]);
   const [patientRecords, setPatientRecords] = useState([]);
-  const [doctorName, setDoctorName] = useState("");
-  const [department, setDepartment] = useState("");
-  const [availableTime, setAvailableTime] = useState("");
+
+  const [staffEmail, setStaffEmail] = useState("");
+  const [staffRole, setStaffRole] = useState("Doctor");
+  const [staffDoctorName, setStaffDoctorName] = useState("");
+  const [staffDepartment, setStaffDepartment] = useState("");
+  const [staffAvailableTime, setStaffAvailableTime] = useState("");
+
   const [editingDoctorId, setEditingDoctorId] = useState(null);
 
   const loadAdminData = async () => {
@@ -40,40 +47,99 @@ function AdminDashboard() {
     loadAdminData();
   }, []);
 
-  const clearForm = () => {
-    setDoctorName("");
-    setDepartment("");
-    setAvailableTime("");
+  const clearStaffForm = () => {
+    setStaffEmail("");
+    setStaffRole("Doctor");
+    setStaffDoctorName("");
+    setStaffDepartment("");
+    setStaffAvailableTime("");
     setEditingDoctorId(null);
   };
 
-  const handleSaveDoctor = async () => {
-    if (!doctorName.trim() || !department.trim() || !availableTime.trim()) {
-      alert("Please fill all doctor fields.");
+  const handleAddStaffProfile = async () => {
+    if (!editingDoctorId && (!staffEmail.trim() || !staffRole.trim())) {
+      alert("Please fill staff email and role.");
       return;
     }
 
-    const doctorData = {
-      name: doctorName,
-      department,
-      availableTime,
-    };
-
-    if (editingDoctorId) {
-      await updateDoctor(editingDoctorId, doctorData);
-    } else {
-      await addDoctor(doctorData);
+    if (staffRole === "Doctor") {
+      if (
+        !staffDoctorName.trim() ||
+        !staffDepartment.trim() ||
+        !staffAvailableTime.trim()
+      ) {
+        alert("Please fill doctor name, department, and available time.");
+        return;
+      }
     }
 
-    clearForm();
+    const staffData = {
+      email: staffEmail,
+      role: staffRole,
+      doctorName: staffRole === "Doctor" ? staffDoctorName : "",
+      department: staffRole === "Doctor" ? staffDepartment : "",
+      availableTime: staffRole === "Doctor" ? staffAvailableTime : "",
+    };
+
+    if (staffRole === "Doctor" && editingDoctorId) {
+      if (!staffEmail.trim()) {
+        alert("This doctor is missing an email. Please add email field to this doctor in Firestore once.");
+        return;
+      }
+
+      const updatedDoctorData = {
+        name: staffDoctorName,
+        department: staffDepartment,
+        availableTime: staffAvailableTime,
+        email: staffEmail,
+      };
+
+      const updatedUserData = {
+        fullName: staffDoctorName,
+        doctorName: staffDoctorName,
+        department: staffDepartment,
+        availableTime: staffAvailableTime,
+        role: "Doctor",
+      };
+
+      const updatedStaffData = {
+        doctorName: staffDoctorName,
+        department: staffDepartment,
+        availableTime: staffAvailableTime,
+        role: "Doctor",
+      };
+
+      await updateDoctor(editingDoctorId, updatedDoctorData);
+      await updateUserProfileByEmail(staffEmail, updatedUserData);
+      await updateStaffProfileByEmail(staffEmail, updatedStaffData);
+
+      alert("Doctor updated successfully everywhere.");
+    } else {
+      await addStaffProfile(staffData);
+
+      if (staffRole === "Doctor") {
+        await addDoctor({
+          email: staffEmail,
+          name: staffDoctorName,
+          department: staffDepartment,
+          availableTime: staffAvailableTime,
+        });
+      }
+
+      alert("Staff profile created successfully.");
+    }
+
+    clearStaffForm();
     loadAdminData();
   };
 
   const handleEditDoctor = (doctor) => {
     setEditingDoctorId(doctor.id);
-    setDoctorName(doctor.name);
-    setDepartment(doctor.department);
-    setAvailableTime(doctor.availableTime);
+    setStaffEmail(doctor.email || "");
+    setStaffRole("Doctor");
+    setStaffDoctorName(doctor.name);
+    setStaffDepartment(doctor.department);
+    setStaffAvailableTime(doctor.availableTime);
   };
 
   const handleDeleteDoctor = async (doctorId) => {
@@ -140,36 +206,59 @@ function AdminDashboard() {
         </section>
 
         <section className="dashboardPanel">
-          <h2>Manage Doctors and Departments</h2>
+          <h2>Create & Edit Staff Account Approval</h2>
 
           <div className="adminForm">
             <input
+              type="email"
+              placeholder="Staff email"
+              value={staffEmail}
+              onChange={(e) => setStaffEmail(e.target.value)}
+              disabled={editingDoctorId !== null}
+            />
+
+            <select
+              value={staffRole}
+              onChange={(e) => setStaffRole(e.target.value)}
+              disabled={editingDoctorId !== null}
+            >
+              <option>Doctor</option>
+              <option>Admin</option>
+            </select>
+
+            <input
               type="text"
               placeholder="Doctor name"
-              value={doctorName}
-              onChange={(e) => setDoctorName(e.target.value)}
+              value={staffDoctorName}
+              onChange={(e) => setStaffDoctorName(e.target.value)}
+              disabled={staffRole !== "Doctor"}
             />
 
             <input
               type="text"
               placeholder="Department"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
+              value={staffDepartment}
+              onChange={(e) => setStaffDepartment(e.target.value)}
+              disabled={staffRole !== "Doctor"}
             />
 
             <input
               type="text"
               placeholder="Available time"
-              value={availableTime}
-              onChange={(e) => setAvailableTime(e.target.value)}
+              value={staffAvailableTime}
+              onChange={(e) => setStaffAvailableTime(e.target.value)}
+              disabled={staffRole !== "Doctor"}
             />
 
-            <button className="smallActionButton" onClick={handleSaveDoctor}>
-              {editingDoctorId ? "Update Doctor" : "Add Doctor"}
+            <button
+              className="smallActionButton"
+              onClick={handleAddStaffProfile}
+            >
+              {editingDoctorId ? "Update Doctor" : "Approve Staff"}
             </button>
 
             {editingDoctorId && (
-              <button className="cancelButtonInline" onClick={clearForm}>
+              <button className="cancelButtonInline" onClick={clearStaffForm}>
                 Cancel
               </button>
             )}
@@ -177,11 +266,12 @@ function AdminDashboard() {
 
           <div className="appointmentList">
             {doctorList.length === 0 ? (
-              <p className="emptyText">No doctors added yet.</p>
+              <p className="emptyText">No approved doctors yet.</p>
             ) : (
               doctorList.map((doctor) => (
                 <div className="appointmentItem" key={doctor.id}>
                   <strong>{doctor.name}</strong>
+                  <p>Email: {doctor.email || "No email linked"}</p>
                   <p>{doctor.department}</p>
                   <span>{doctor.availableTime}</span>
 
@@ -268,6 +358,7 @@ function AdminDashboard() {
             </div>
           </div>
         </section>
+
         <AdminCharts appointments={appointments} />
       </main>
     </div>
