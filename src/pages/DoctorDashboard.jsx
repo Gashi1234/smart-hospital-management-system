@@ -10,15 +10,27 @@ import {
   getAppointmentsByDoctor,
   getDiagnosesByDoctor,
   updateAppointmentStatus,
+  updateUserProfileByEmail,
+  updateDoctorByEmail,
+  updateStaffProfileByEmail,
 } from "../services/firestoreService";
 import "../styles/dashboard.css";
 
 function DoctorDashboard() {
   const [doctorName, setDoctorName] = useState("");
+  const [doctorEmail, setDoctorEmail] = useState("");
+  const [doctorAvailability, setDoctorAvailability] = useState("");
+  const [availableFrom, setAvailableFrom] = useState("");
+  const [availableTo, setAvailableTo] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [diagnosis, setDiagnosis] = useState("");
   const [savedNotes, setSavedNotes] = useState([]);
+
+  const buildAvailabilityText = (from, to) => {
+    if (!from || !to) return "No availability set";
+    return `${from} to ${to}`;
+  };
 
   const loadDoctorData = async () => {
     const currentUser = auth.currentUser;
@@ -32,15 +44,22 @@ function DoctorDashboard() {
       return;
     }
 
+    const from = doctorProfile.availableFrom || "";
+    const to = doctorProfile.availableTo || "";
+
     setDoctorName(doctorProfile.doctorName);
+    setDoctorEmail(doctorProfile.email);
+    setAvailableFrom(from);
+    setAvailableTo(to);
+    setDoctorAvailability(
+      doctorProfile.availableTime || buildAvailabilityText(from, to)
+    );
 
     const appointmentData = await getAppointmentsByDoctor(
       doctorProfile.doctorName
     );
 
-    const diagnosisData = await getDiagnosesByDoctor(
-      doctorProfile.doctorName
-    );
+    const diagnosisData = await getDiagnosesByDoctor(doctorProfile.doctorName);
 
     setAppointments(appointmentData);
     setSavedNotes(diagnosisData);
@@ -49,6 +68,42 @@ function DoctorDashboard() {
   useEffect(() => {
     loadDoctorData();
   }, []);
+
+  const updateAvailability = async () => {
+    if (!availableFrom || !availableTo) {
+      alert("Please select both available from and available to.");
+      return;
+    }
+
+    if (availableFrom >= availableTo) {
+      alert("Available From time must be earlier than Available To time.");
+      return;
+    }
+
+    const availableTime = buildAvailabilityText(availableFrom, availableTo);
+
+    await updateUserProfileByEmail(doctorEmail, {
+      availableFrom,
+      availableTo,
+      availableTime,
+    });
+
+    await updateDoctorByEmail(doctorEmail, {
+      availableFrom,
+      availableTo,
+      availableTime,
+    });
+
+    await updateStaffProfileByEmail(doctorEmail, {
+      availableFrom,
+      availableTo,
+      availableTime,
+    });
+
+    setDoctorAvailability(availableTime);
+
+    alert("Availability updated successfully.");
+  };
 
   const changeAppointmentStatus = async (appointmentId, status) => {
     await updateAppointmentStatus(appointmentId, status);
@@ -105,9 +160,9 @@ function DoctorDashboard() {
           />
 
           <DashboardCard
-            title="Doctor"
-            value={doctorName || "Loading"}
-            description="Logged-in doctor"
+            title="Availability"
+            value={doctorAvailability || "Loading"}
+            description="Your available time"
           />
 
           <DashboardCard
@@ -118,60 +173,102 @@ function DoctorDashboard() {
         </section>
 
         <section className="dashboardPanel">
+          <h2>Update Availability</h2>
+
+          <div className="adminForm">
+            <input
+              type="time"
+              value={availableFrom}
+              onChange={(e) => setAvailableFrom(e.target.value)}
+            />
+
+            <input
+              type="time"
+              value={availableTo}
+              onChange={(e) => setAvailableTo(e.target.value)}
+            />
+
+            <button className="smallActionButton" onClick={updateAvailability}>
+              Update Availability
+            </button>
+          </div>
+        </section>
+
+        <section className="dashboardPanel">
           <h2>My Patient Appointments</h2>
 
-          {appointments.length === 0 ? (
-            <p className="emptyText">No appointments assigned to you yet.</p>
-          ) : (
-            <div className="appointmentList">
-              {appointments.map((appointment) => (
-                <div className="appointmentItem" key={appointment.id}>
+          {appointments.map((appointment) => (
+            <div className="appointmentCard" key={appointment.id}>
+              <div className="appointmentCardHeader">
+                <h3>{appointment.patientEmail}</h3>
+                <span className="statusBadge">{appointment.status}</span>
+              </div>
+
+              <div className="appointmentMetaGrid">
+                <div className="metaBox">
+                  <span>Doctor</span>
                   <strong>{appointment.doctor}</strong>
-                  <p>Patient: {appointment.patientEmail}</p>
-                  <p>{appointment.department}</p>
-                  <p>
-                    Symptoms:{" "}
-                    {appointment.symptoms || "No symptoms provided"}
-                  </p>
-                  <p>Status: {appointment.status}</p>
-                  <span>{appointment.time}</span>
-
-                  <button
-                    className="smallActionButton"
-                    onClick={() => setSelectedPatient(appointment)}
-                  >
-                    Add Diagnosis
-                  </button>
-
-                  <div className="statusActions">
-                    <button
-                      onClick={() =>
-                        changeAppointmentStatus(appointment.id, "Accepted")
-                      }
-                    >
-                      Accept
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        changeAppointmentStatus(appointment.id, "Rejected")
-                      }
-                    >
-                      Reject
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        changeAppointmentStatus(appointment.id, "Completed")
-                      }
-                    >
-                      Complete
-                    </button>
-                  </div>
                 </div>
-              ))}
+
+                <div className="metaBox">
+                  <span>Department</span>
+                  <strong>{appointment.department}</strong>
+                </div>
+
+                <div className="metaBox">
+                  <span>Date & Time</span>
+                  <strong>
+                    {appointment.date || "No date"} at{" "}
+                    {appointment.time || "No time"}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="symptomsBox">
+                <span>Symptoms</span>
+                <p>
+                  {appointment.symptoms || "No symptoms provided"}
+                </p>
+              </div>
+
+              <div className="statusActionsModern">
+                <button
+                  className="smallActionButton"
+                  onClick={() => setSelectedPatient(appointment)}
+                >
+                  Add Medical Note
+                </button>
+
+                <button
+                  className="acceptButton"
+                  onClick={() =>
+                    changeAppointmentStatus(appointment.id, "Accepted")
+                  }
+                >
+                  Accept
+                </button>
+
+                <button
+                  className="rejectButton"
+                  onClick={() =>
+                    changeAppointmentStatus(appointment.id, "Rejected")
+                  }
+                >
+                  Reject
+                </button>
+
+                <button
+                  className="completeButton"
+                  onClick={() =>
+                    changeAppointmentStatus(appointment.id, "Completed")
+                  }
+                >
+                  Complete
+                </button>
+              </div>
+              
             </div>
-          )}
+          ))}
         </section>
 
         <section className="dashboardPanel">

@@ -27,7 +27,8 @@ function AdminDashboard() {
   const [staffRole, setStaffRole] = useState("Doctor");
   const [staffDoctorName, setStaffDoctorName] = useState("");
   const [staffDepartment, setStaffDepartment] = useState("");
-  const [staffAvailableTime, setStaffAvailableTime] = useState("");
+  const [staffAvailableFrom, setStaffAvailableFrom] = useState("");
+  const [staffAvailableTo, setStaffAvailableTo] = useState("");
 
   const [editingDoctorId, setEditingDoctorId] = useState(null);
 
@@ -47,12 +48,18 @@ function AdminDashboard() {
     loadAdminData();
   }, []);
 
+  const buildAvailabilityText = (from, to) => {
+    if (!from || !to) return "";
+    return `${from} to ${to}`;
+  };
+
   const clearStaffForm = () => {
     setStaffEmail("");
     setStaffRole("Doctor");
     setStaffDoctorName("");
     setStaffDepartment("");
-    setStaffAvailableTime("");
+    setStaffAvailableFrom("");
+    setStaffAvailableTo("");
     setEditingDoctorId(null);
   };
 
@@ -66,19 +73,32 @@ function AdminDashboard() {
       if (
         !staffDoctorName.trim() ||
         !staffDepartment.trim() ||
-        !staffAvailableTime.trim()
+        !staffAvailableFrom ||
+        !staffAvailableTo
       ) {
-        alert("Please fill doctor name, department, and available time.");
+        alert("Please fill doctor name, department, available from, and available to.");
+        return;
+      }
+
+      if (staffAvailableFrom >= staffAvailableTo) {
+        alert("Available From time must be earlier than Available To time.");
         return;
       }
     }
+
+    const availableTime = buildAvailabilityText(
+      staffAvailableFrom,
+      staffAvailableTo
+    );
 
     const staffData = {
       email: staffEmail,
       role: staffRole,
       doctorName: staffRole === "Doctor" ? staffDoctorName : "",
       department: staffRole === "Doctor" ? staffDepartment : "",
-      availableTime: staffRole === "Doctor" ? staffAvailableTime : "",
+      availableFrom: staffRole === "Doctor" ? staffAvailableFrom : "",
+      availableTo: staffRole === "Doctor" ? staffAvailableTo : "",
+      availableTime: staffRole === "Doctor" ? availableTime : "",
     };
 
     if (staffRole === "Doctor" && editingDoctorId) {
@@ -90,7 +110,9 @@ function AdminDashboard() {
       const updatedDoctorData = {
         name: staffDoctorName,
         department: staffDepartment,
-        availableTime: staffAvailableTime,
+        availableFrom: staffAvailableFrom,
+        availableTo: staffAvailableTo,
+        availableTime,
         email: staffEmail,
       };
 
@@ -98,14 +120,18 @@ function AdminDashboard() {
         fullName: staffDoctorName,
         doctorName: staffDoctorName,
         department: staffDepartment,
-        availableTime: staffAvailableTime,
+        availableFrom: staffAvailableFrom,
+        availableTo: staffAvailableTo,
+        availableTime,
         role: "Doctor",
       };
 
       const updatedStaffData = {
         doctorName: staffDoctorName,
         department: staffDepartment,
-        availableTime: staffAvailableTime,
+        availableFrom: staffAvailableFrom,
+        availableTo: staffAvailableTo,
+        availableTime,
         role: "Doctor",
       };
 
@@ -122,7 +148,9 @@ function AdminDashboard() {
           email: staffEmail,
           name: staffDoctorName,
           department: staffDepartment,
-          availableTime: staffAvailableTime,
+          availableFrom: staffAvailableFrom,
+          availableTo: staffAvailableTo,
+          availableTime,
         });
       }
 
@@ -139,7 +167,8 @@ function AdminDashboard() {
     setStaffRole("Doctor");
     setStaffDoctorName(doctor.name);
     setStaffDepartment(doctor.department);
-    setStaffAvailableTime(doctor.availableTime);
+    setStaffAvailableFrom(doctor.availableFrom || "");
+    setStaffAvailableTo(doctor.availableTo || "");
   };
 
   const handleDeleteDoctor = async (doctorId) => {
@@ -243,10 +272,16 @@ function AdminDashboard() {
             />
 
             <input
-              type="text"
-              placeholder="Available time"
-              value={staffAvailableTime}
-              onChange={(e) => setStaffAvailableTime(e.target.value)}
+              type="time"
+              value={staffAvailableFrom}
+              onChange={(e) => setStaffAvailableFrom(e.target.value)}
+              disabled={staffRole !== "Doctor"}
+            />
+
+            <input
+              type="time"
+              value={staffAvailableTo}
+              onChange={(e) => setStaffAvailableTo(e.target.value)}
               disabled={staffRole !== "Doctor"}
             />
 
@@ -273,7 +308,10 @@ function AdminDashboard() {
                   <strong>{doctor.name}</strong>
                   <p>Email: {doctor.email || "No email linked"}</p>
                   <p>{doctor.department}</p>
-                  <span>{doctor.availableTime}</span>
+                  <span>
+                    {doctor.availableTime ||
+                      `${doctor.availableFrom || "N/A"} to ${doctor.availableTo || "N/A"}`}
+                  </span>
 
                   <button
                     className="smallActionButton"

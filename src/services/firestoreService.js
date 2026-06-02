@@ -236,3 +236,40 @@ import {
   
     return await Promise.all(updatePromises);
   };
+
+  export const updateDoctorByEmail = async (email, updatedData) => {
+    const doctorsQuery = query(
+      collection(db, "doctors"),
+      where("email", "==", email)
+    );
+  
+    const querySnapshot = await getDocs(doctorsQuery);
+  
+    const updatePromises = querySnapshot.docs.map((doctorDoc) =>
+      updateDoc(doc(db, "doctors", doctorDoc.id), updatedData)
+    );
+  
+    return await Promise.all(updatePromises);
+  };
+
+  export const checkAppointmentSlotTaken = async (doctorName, date, time) => {
+    const appointmentsQuery = query(
+      collection(db, "appointments"),
+      where("doctor", "==", doctorName),
+      where("date", "==", date),
+      where("time", "==", time)
+    );
+  
+    const querySnapshot = await getDocs(appointmentsQuery);
+  
+    const activeAppointments = querySnapshot.docs.filter((appointmentDoc) => {
+      const appointment = appointmentDoc.data();
+  
+      return (
+        appointment.status === "Booked" ||
+        appointment.status === "Accepted"
+      );
+    });
+  
+    return activeAppointments.length > 0;
+  };
