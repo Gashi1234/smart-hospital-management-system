@@ -610,3 +610,53 @@ html {
     background: #304ffe;
     color: white;
   }
+
+  .doctorCardRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+  }
+  
+  .doctorActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: auto;
+  }
+  
+  @media (max-width: 900px) {
+    .doctorCardRow {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .doctorActions {
+      margin-left: 0;
+      margin-top: 12px;
+    }
+  }
+
+  .navbarUserBox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .navbarUserText {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .navbarUserText strong {
+    color: #0b2742;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  
+  .navbarUserText span {
+    color: #64748b;
+    font-size: 13px;
+  }

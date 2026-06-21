@@ -305,27 +305,33 @@ function AdminDashboard() {
             ) : (
               doctorList.map((doctor) => (
                 <div className="appointmentItem" key={doctor.id}>
-                  <strong>{doctor.name}</strong>
-                  <p>Email: {doctor.email || "No email linked"}</p>
-                  <p>{doctor.department}</p>
-                  <span>
-                    {doctor.availableTime ||
-                      `${doctor.availableFrom || "N/A"} to ${doctor.availableTo || "N/A"}`}
-                  </span>
-
-                  <button
-                    className="smallActionButton"
-                    onClick={() => handleEditDoctor(doctor)}
-                  >
-                    Edit Doctor
-                  </button>
-
-                  <button
-                    className="deleteButton"
-                    onClick={() => handleDeleteDoctor(doctor.id)}
-                  >
-                    Delete Doctor
-                  </button>
+                  <div className="doctorCardRow">
+                    <div>
+                      <strong>{doctor.name}</strong>
+                      <p>Email: {doctor.email || "No email linked"}</p>
+                      <p>{doctor.department}</p>
+                      <span>
+                        {doctor.availableTime ||
+                          `${doctor.availableFrom || "N/A"} to ${doctor.availableTo || "N/A"}`}
+                      </span>
+                    </div>
+              
+                    <div className="doctorActions">
+                      <button
+                        className="smallActionButton"
+                        onClick={() => handleEditDoctor(doctor)}
+                      >
+                        Edit Doctor
+                      </button>
+              
+                      <button
+                        className="deleteButton"
+                        onClick={() => handleDeleteDoctor(doctor.id)}
+                      >
+                        Delete Doctor
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
